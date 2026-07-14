@@ -285,7 +285,21 @@ end_date=st.sidebar.date_input(
 
 )
 
+# ===================== PROJECT LINKS =====================
 
+st.sidebar.divider()
+
+st.sidebar.markdown("### 🔗 Project Links")
+
+st.sidebar.link_button(
+    "🌐 Live Dashboard",
+    "https://epidemicguard-ghana.streamlit.app"
+)
+
+st.sidebar.link_button(
+    "📂 GitHub Repository",
+    "https://github.com/isdennis06/EpidemicGuard-Ghana"
+)
 
 filtered_df=df[
 
