@@ -584,4 +584,104 @@ Recommended Actions
 • Begin contact tracing where necessary.
 """
         )
-        # Dashboard updated
+        # ==========================================================
+# TAB 4 - KNOWLEDGE QUIZ
+# ==========================================================
+
+with tab4:
+
+    st.subheader("🧠 EpidemicGuard Knowledge Quiz")
+
+    st.write(
+        "Test your knowledge about disease outbreaks, surveillance, and public health."
+    )
+
+    questions = [
+        {
+            "question": "1. What does an early warning system help detect?",
+            "options": [
+                "Weather only",
+                "Possible disease outbreaks",
+                "Internet problems",
+                "Population growth"
+            ],
+            "answer": "Possible disease outbreaks"
+        },
+
+        {
+            "question": "2. Which factor can indicate a possible outbreak?",
+            "options": [
+                "Increasing disease cases",
+                "Lower internet speed",
+                "More vehicles",
+                "Building houses"
+            ],
+            "answer": "Increasing disease cases"
+        },
+
+        {
+            "question": "3. What is the purpose of disease surveillance?",
+            "options": [
+                "Monitor and control diseases",
+                "Sell medicine",
+                "Create websites",
+                "Track vehicles"
+            ],
+            "answer": "Monitor and control diseases"
+        },
+
+        {
+            "question": "4. Which action helps reduce disease spread?",
+            "options": [
+                "Ignoring symptoms",
+                "Early reporting and prevention",
+                "Avoiding hospitals",
+                "Stopping data collection"
+            ],
+            "answer": "Early reporting and prevention"
+        },
+
+        {
+            "question": "5. Ghana has how many administrative regions?",
+            "options": [
+                "10",
+                "12",
+                "16",
+                "20"
+            ],
+            "answer": "16"
+        }
+    ]
+
+
+    score = 0
+
+    for i, q in enumerate(questions):
+
+        choice = st.radio(
+            q["question"],
+            q["options"],
+            key=f"question_{i}"
+        )
+
+        if choice == q["answer"]:
+            score += 1
+
+
+    if st.button("Submit Quiz"):
+
+        st.success(
+            f"Your Score: {score}/{len(questions)}"
+        )
+
+        percentage = (score / len(questions)) * 100
+
+        if percentage == 100:
+            st.balloons()
+            st.success("Excellent! You understand epidemic monitoring.")
+
+        elif percentage >= 60:
+            st.info("Good job! Keep learning.")
+
+        else:
+            st.warning("Review the dashboard information and try again.")
