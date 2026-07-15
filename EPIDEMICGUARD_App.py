@@ -2,10 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime
 
-
-# ===================== CONFIG =====================
+# ==========================================================
+# CONFIGURATION
+# ==========================================================
 
 st.set_page_config(
     page_title="EpidemicGuard Ghana",
@@ -14,182 +16,147 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-
-# ===================== PROFESSIONAL THEME =====================
+# ==========================================================
+# PROFESSIONAL DARK THEME
+# ==========================================================
 
 st.markdown("""
 <style>
 
-/* Application background */
-.stApp {
-    background: linear-gradient(135deg,#e8eef7,#f8fafc);
+/* Main App */
+.stApp{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:white;
 }
-
-
-/* All text */
-.stMarkdown p,
-.stText,
-label,
-p {
-    color:#1e293b !important;
-}
-
-
-/* Headers */
-
-.header {
-    font-size:3rem;
-    font-weight:800;
-    color:#1e3a8a !important;
-    text-align:center;
-}
-
-
-.subheader {
-    font-size:1.3rem;
-    color:#334155 !important;
-    text-align:center;
-}
-
-
-
-/* KPI Cards */
-
-[data-testid="stMetric"] {
-
-    background:white;
-    padding:20px;
-    border-radius:15px;
-    border:1px solid #cbd5e1;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
-
-}
-
-
-[data-testid="stMetricLabel"] {
-
-    color:#475569 !important;
-    font-weight:700;
-
-}
-
-
-[data-testid="stMetricValue"] {
-
-    color:#0f172a !important;
-    font-size:35px;
-    font-weight:800;
-
-}
-
-
 
 /* Sidebar */
 
-section[data-testid="stSidebar"] {
-
-    background:white;
-
+section[data-testid="stSidebar"]{
+    background:#111827;
 }
 
-
-section[data-testid="stSidebar"] * {
-
-    color:#1e293b !important;
-
+section[data-testid="stSidebar"] *{
+    color:white !important;
 }
 
+/* Headers */
 
+.header{
+    font-size:3rem;
+    text-align:center;
+    font-weight:800;
+    background:linear-gradient(to right,#38bdf8,#818cf8);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.subheader{
+    text-align:center;
+    color:#cbd5e1;
+    font-size:1.2rem;
+}
+
+/* Metric Cards */
+
+[data-testid="stMetric"]{
+    background:#1e293b;
+    border-radius:15px;
+    padding:18px;
+    border:1px solid #334155;
+    box-shadow:0px 5px 15px rgba(0,0,0,.35);
+}
+
+[data-testid="stMetricLabel"]{
+    color:#94a3b8 !important;
+}
+
+[data-testid="stMetricValue"]{
+    color:white !important;
+    font-size:30px;
+}
 
 /* Buttons */
 
-.stButton button {
-
-    background:#1e3a8a;
-    color:white !important;
-    border-radius:10px;
-    font-weight:700;
-
-}
-
-
-.stButton button:hover {
-
+.stButton button{
     background:#2563eb;
-
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
 }
 
-
-
-/* Radio buttons */
-
-.stRadio label {
-
-    color:#1e293b !important;
-
+.stButton button:hover{
+    background:#3b82f6;
 }
 
+/* Radio */
+
+.stRadio label{
+    color:white !important;
+}
 
 /* Tabs */
 
-button[data-baseweb="tab"] {
-
-    font-weight:700;
-
+button[data-baseweb="tab"]{
+    font-weight:bold;
+    color:#cbd5e1;
 }
 
+button[data-baseweb="tab"][aria-selected="true"]{
+    color:#38bdf8 !important;
+}
+
+/* Dataframe */
+
+div[data-testid="stDataFrame"]{
+    border-radius:10px;
+}
 
 </style>
-
 """, unsafe_allow_html=True)
 
-
-
-# ===================== TITLE =====================
-
+# ==========================================================
+# TITLE
+# ==========================================================
 
 st.markdown(
-    '<h1 class="header">EpidemicGuard Ghana 🦠</h1>',
+    '<h1 class="header">🦠 EpidemicGuard Ghana</h1>',
     unsafe_allow_html=True
 )
 
-
 st.markdown(
-    '<p class="subheader">National Disease Outbreak Early Warning & Pattern Recognition System</p>',
+    '<p class="subheader">Disease Outbreak Early Warning & Pattern Recognition Dashboard</p>',
     unsafe_allow_html=True
 )
 
-
-
-# ===================== REGIONS =====================
+# ==========================================================
+# GHANA REGIONS
+# ==========================================================
 
 REGIONS = [
-
-"Ahafo",
-"Ashanti",
-"Bono",
-"Bono East",
-"Central",
-"Eastern",
-"Greater Accra",
-"North East",
-"Northern",
-"Oti",
-"Savannah",
-"Upper East",
-"Upper West",
-"Volta",
-"Western",
-"Western North"
-
+    "Ahafo",
+    "Ashanti",
+    "Bono",
+    "Bono East",
+    "Central",
+    "Eastern",
+    "Greater Accra",
+    "North East",
+    "Northern",
+    "Oti",
+    "Savannah",
+    "Upper East",
+    "Upper West",
+    "Volta",
+    "Western",
+    "Western North"
 ]
 
+# ==========================================================
+# DATA GENERATION
+# ==========================================================
 
-
-# ===================== DATA =====================
-
-
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_data():
 
     np.random.seed(42)
@@ -199,21 +166,24 @@ def load_data():
         periods=120
     )
 
-    data=[]
-
+    data = []
 
     for region in REGIONS:
 
-        base=np.random.randint(20,100)
+        base = np.random.randint(50,150)
 
+        trend = np.random.uniform(0.95,1.05)
 
-        for date in dates:
+        for i,date in enumerate(dates):
 
-            cases=max(
+            seasonal = np.sin(i/8)*8
+
+            noise = np.random.randint(-5,6)
+
+            cases = max(
                 5,
-                int(base*np.random.uniform(0.05,0.15))
+                int(base*trend + seasonal + noise)
             )
-
 
             data.append({
 
@@ -223,424 +193,395 @@ def load_data():
 
             })
 
+    df = pd.DataFrame(data)
 
-    df=pd.DataFrame(data)
-
-
-    df=df.sort_values(
-        ["region","date"]
+    df.sort_values(
+        ["region","date"],
+        inplace=True
     )
 
-
-    df["weekly_growth"]=(
-
+    df["weekly_growth"] = (
         df.groupby("region")["new_cases"]
-        .pct_change()
+        .pct_change(7)
         *100
-
     )
 
+    df["moving_average"] = (
+        df.groupby("region")["new_cases"]
+        .transform(lambda x: x.rolling(7).mean())
+    )
 
     return df
 
+df = load_data()
+# ==========================================================
+# SIDEBAR
+# ==========================================================
 
+st.sidebar.header("⚙ Dashboard Filters")
 
-df=load_data()
-
-
-
-# ===================== SIDEBAR =====================
-
-
-st.sidebar.header("⚙️ Dashboard Filters")
-
-
-selected_regions=st.sidebar.multiselect(
-
+selected_regions = st.sidebar.multiselect(
     "🗺 Select Regions",
-
     REGIONS,
-
-    default=REGIONS[:8]
-
+    default=REGIONS
 )
 
-
-
-start_date=st.sidebar.date_input(
-
-    "Start Date",
-
-    df.date.min()
-
+start_date = st.sidebar.date_input(
+    "📅 Start Date",
+    value=df["date"].min().date()
 )
 
-
-
-end_date=st.sidebar.date_input(
-
-    "End Date",
-
-    df.date.max()
-
+end_date = st.sidebar.date_input(
+    "📅 End Date",
+    value=df["date"].max().date()
 )
-
-# ===================== PROJECT LINKS =====================
 
 st.sidebar.divider()
 
-st.sidebar.markdown("### 🔗 Project Links")
+st.sidebar.markdown("### 🌐 Project Links")
 
 st.sidebar.link_button(
-    "🌐 Live Dashboard",
+    "🚀 Live Dashboard",
     "https://epidemicguard-ghana.streamlit.app"
 )
 
 st.sidebar.link_button(
-    "📂 GitHub Repository",
+    "💻 GitHub Repository",
     "https://github.com/isdennis06/EpidemicGuard-Ghana"
 )
 
-filtered_df=df[
+# ==========================================================
+# FILTER DATA
+# ==========================================================
 
-    (df.region.isin(selected_regions)) &
-    (df.date>=pd.to_datetime(start_date)) &
-    (df.date<=pd.to_datetime(end_date))
-
+filtered_df = df[
+    (df["region"].isin(selected_regions))
+    &
+    (df["date"] >= pd.to_datetime(start_date))
+    &
+    (df["date"] <= pd.to_datetime(end_date))
 ]
 
-
-
-# ===================== KPI =====================
-
-
-latest=(
-
-filtered_df
-.groupby("region")
-.last()
-.reset_index()
-
+latest = (
+    filtered_df
+    .sort_values("date")
+    .groupby("region")
+    .last()
+    .reset_index()
 )
 
+# ==========================================================
+# KPI CARDS
+# ==========================================================
 
+total_cases = int(filtered_df["new_cases"].sum())
 
-total_cases=int(
-
-filtered_df.new_cases.sum()
-
+average_cases = round(
+    filtered_df["new_cases"].mean(),
+    1
 )
 
-
-average_cases=round(
-
-filtered_df.new_cases.mean(),
-
-1
-
-)
-
-
-highest_region=latest.loc[
-
-latest.new_cases.idxmax(),
-
-"region"
-
+highest_region = latest.loc[
+    latest["new_cases"].idxmax(),
+    "region"
 ]
 
-
-highest_cases=int(
-
-latest.new_cases.max()
-
+highest_cases = int(
+    latest["new_cases"].max()
 )
 
-
-growth=round(
-
-latest.weekly_growth.max(),
-
-1
-
+growth_rate = round(
+    latest["weekly_growth"]
+    .fillna(0)
+    .max(),
+    1
 )
 
+col1, col2, col3, col4 = st.columns(4)
 
-
-c1,c2,c3,c4=st.columns(4)
-
-
-c1.metric(
-"🦠 Total Cases",
-f"{total_cases:,}"
+col1.metric(
+    "🦠 Total Cases",
+    f"{total_cases:,}"
 )
 
-
-c2.metric(
-"📊 Average Daily",
-average_cases
+col2.metric(
+    "📊 Average Daily Cases",
+    average_cases
 )
 
-
-c3.metric(
-"⚠️ Highest Region",
-highest_region
+col3.metric(
+    "🔥 Highest Region",
+    f"{highest_region} ({highest_cases})"
 )
 
-
-c4.metric(
-"📈 Growth Rate",
-f"{growth}%"
+col4.metric(
+    "📈 Highest Growth",
+    f"{growth_rate}%"
 )
-# ===================== MAIN DASHBOARD TABS =====================
+
+# ==========================================================
+# MAIN TABS
+# ==========================================================
 
 tab1, tab2, tab3, tab4 = st.tabs(
-[
-"🚨 Early Warning",
-"📈 Analytics",
-"🔍 Pattern Detection",
-"🧠 Knowledge Quiz"
-]
+    [
+        "🚨 Early Warning",
+        "📊 Analytics",
+        "🔍 Pattern Recognition",
+        "🧠 Knowledge Quiz"
+    ]
 )
-
-
-
-# ===================== EARLY WARNING =====================
+# ==========================================================
+# TAB 1 - EARLY WARNING SYSTEM
+# ==========================================================
 
 with tab1:
 
-    st.subheader("🚨 Outbreak Risk Monitoring")
+    st.subheader("🚨 Disease Outbreak Early Warning")
 
+    st.write(
+        "The system monitors weekly disease growth and automatically classifies each region according to outbreak risk."
+    )
 
     for _, row in latest.iterrows():
 
-        risk = row.weekly_growth
+        growth = row["weekly_growth"]
 
+        if pd.isna(growth):
+            growth = 0
 
-        if risk > 25:
+        if growth >= 25:
 
             st.error(
-                f"🔴 HIGH RISK — {row.region} | Growth: {risk:.1f}%"
+                f"🔴 HIGH RISK: {row['region']} | Weekly Growth: {growth:.1f}% | Immediate intervention recommended."
             )
 
-
-        elif risk > 10:
+        elif growth >= 10:
 
             st.warning(
-                f"🟠 WATCH — {row.region} | Growth: {risk:.1f}%"
+                f"🟠 MODERATE RISK: {row['region']} | Weekly Growth: {growth:.1f}% | Monitor closely."
             )
-
 
         else:
 
             st.success(
-                f"🟢 Stable — {row.region}"
+                f"🟢 LOW RISK: {row['region']} | Weekly Growth: {growth:.1f}%"
             )
 
+    st.divider()
+
+    st.subheader("📋 Summary")
+
+    high = (latest["weekly_growth"].fillna(0) >= 25).sum()
+    medium = ((latest["weekly_growth"].fillna(0) >= 10) &
+              (latest["weekly_growth"].fillna(0) < 25)).sum()
+    low = (latest["weekly_growth"].fillna(0) < 10).sum()
+
+    c1, c2, c3 = st.columns(3)
+
+    c1.metric("🔴 High Risk", high)
+    c2.metric("🟠 Moderate Risk", medium)
+    c3.metric("🟢 Low Risk", low)
 
 
-
-# ===================== ANALYTICS =====================
+# ==========================================================
+# TAB 2 - ANALYTICS
+# ==========================================================
 
 with tab2:
 
-    st.subheader("📈 Disease Trend Analytics")
+    st.subheader("📊 Disease Trend Analytics")
 
-
-    daily_cases=(
-
+    daily_cases = (
         filtered_df
-        .groupby("date")
-        .new_cases
+        .groupby("date")["new_cases"]
         .sum()
         .reset_index()
-
     )
 
-
-    line_chart=px.line(
-
+    fig = px.line(
         daily_cases,
-
         x="date",
-
         y="new_cases",
-
-        title="National Daily Cases Trend"
-
+        markers=True,
+        title="National Daily Disease Cases"
     )
 
-
-    line_chart.update_layout(
-        template="plotly_white"
+    fig.update_layout(
+        template="plotly_dark",
+        height=500,
+        xaxis_title="Date",
+        yaxis_title="Cases"
     )
-
 
     st.plotly_chart(
-        line_chart,
+        fig,
         use_container_width=True
     )
 
+    st.divider()
 
-
-    bar_chart=px.bar(
-
-        latest,
-
+    fig2 = px.bar(
+        latest.sort_values("new_cases", ascending=False),
         x="region",
-
         y="new_cases",
-
-        title="Latest Cases By Region"
-
+        color="new_cases",
+        title="Latest Reported Cases by Region"
     )
 
-
-    bar_chart.update_layout(
-        template="plotly_white"
+    fig2.update_layout(
+        template="plotly_dark",
+        height=500,
+        xaxis_title="Region",
+        yaxis_title="Cases"
     )
-
 
     st.plotly_chart(
-        bar_chart,
+        fig2,
         use_container_width=True
     )
 
+    st.divider()
 
+    fig3 = px.pie(
+        latest,
+        names="region",
+        values="new_cases",
+        title="Distribution of Cases Across Regions"
+    )
 
+    fig3.update_layout(
+        template="plotly_dark",
+        height=500
+    )
 
-
-# ===================== PATTERN RECOGNITION =====================
+    st.plotly_chart(
+        fig3,
+        use_container_width=True
+    )
+    # ==========================================================
+# TAB 3 - PATTERN RECOGNITION
+# ==========================================================
 
 with tab3:
 
-    st.subheader(
-        "🔍 Pattern Recognition Engine"
-    )
+    st.subheader("🔍 Pattern Recognition Engine")
 
+    pattern_df = latest[
+        [
+            "region",
+            "new_cases",
+            "moving_average",
+            "weekly_growth"
+        ]
+    ].copy()
+
+    pattern_df["Risk Level"] = np.where(
+        pattern_df["weekly_growth"] >= 25,
+        "🔴 High",
+        np.where(
+            pattern_df["weekly_growth"] >= 10,
+            "🟠 Medium",
+            "🟢 Low"
+        )
+    )
 
     st.dataframe(
-
-        latest[
-            [
-                "region",
-                "new_cases",
-                "weekly_growth"
-            ]
-        ].round(2),
-
+        pattern_df.round(2),
         use_container_width=True,
-
         hide_index=True
-
     )
 
+    st.divider()
 
-    st.info(
-        "Regions above 25% weekly growth are flagged as potential outbreak areas."
-    )
+    st.subheader("🔥 Hotspot Detection")
 
+    hotspots = pattern_df[
+        pattern_df["weekly_growth"] >= 25
+    ]
 
-
-
-
-# ===================== QUIZ =====================
-
-with tab4:
-
-    st.subheader(
-        "🧠 Epidemic Knowledge Quiz"
-    )
-
-
-    questions={
-
-        "What does WHO stand for?":
-
-        [
-            "World Health Organization",
-            "World Health Office",
-            "World Human Organization"
-        ],
-
-
-        "What is an outbreak?":
-
-        [
-            "A sudden increase in disease cases",
-            "A type of medicine",
-            "A hospital building"
-        ],
-
-
-        "Which data helps predict disease spread?":
-
-        [
-            "Case trends over time",
-            "Random guessing",
-            "Population names only"
-        ],
-
-
-        "What does early warning mean?":
-
-        [
-            "Detecting risks before they become severe",
-            "Ignoring disease data",
-            "Stopping all hospitals"
-        ]
-
-    }
-
-
-
-    score=0
-
-
-
-    answers={}
-
-
-
-    for i,(question,options) in enumerate(questions.items()):
-
-
-        answers[question]=st.radio(
-
-            question,
-
-            options,
-
-            key=f"question_{i}"
-
-        )
-
-
-
-    if st.button(
-        "Submit Quiz",
-        key="quiz_submit"
-    ):
-
-
-        for question in questions:
-
-            if answers[question] == questions[question][0]:
-
-                score += 1
-
-
+    if hotspots.empty:
 
         st.success(
-            f"🎉 Your score: {score}/{len(questions)}"
+            "✅ No outbreak hotspots detected."
         )
 
+    else:
 
+        st.error(
+            "⚠️ Potential outbreak hotspots detected:"
+        )
 
+        for _, row in hotspots.iterrows():
 
+            st.markdown(
+                f"""
+**{row['region']}**
 
-# ===================== FOOTER =====================
+• Current Cases: **{int(row['new_cases'])}**
 
-st.caption(
-"Professional Public Health Dashboard | Ghana Focused | Systems Analysis Project"
-)
+• Weekly Growth: **{row['weekly_growth']:.1f}%**
+
+• Status: **High Risk**
+"""
+            )
+
+    st.divider()
+
+    st.subheader("📊 Weekly Growth Comparison")
+
+    growth_chart = px.bar(
+        pattern_df.sort_values(
+            "weekly_growth",
+            ascending=False
+        ),
+        x="region",
+        y="weekly_growth",
+        color="weekly_growth",
+        title="Weekly Growth Rate by Region"
+    )
+
+    growth_chart.update_layout(
+        template="plotly_dark",
+        height=500
+    )
+
+    st.plotly_chart(
+        growth_chart,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    st.subheader("💡 Automated Recommendations")
+
+    if hotspots.empty:
+
+        st.info(
+            """
+• Continue routine surveillance.
+
+• Maintain disease prevention education.
+
+• Encourage regular reporting from health facilities.
+"""
+        )
+
+    else:
+
+        st.warning(
+            """
+Recommended Actions
+
+• Increase disease surveillance.
+
+• Deploy rapid response teams.
+
+• Intensify public awareness campaigns.
+
+• Ensure hospitals are adequately supplied.
+
+• Begin contact tracing where necessary.
+"""
+        )
+        
